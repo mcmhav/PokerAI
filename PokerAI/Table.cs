@@ -13,8 +13,9 @@ namespace PokerAI
         private Deck deck;
         private List<Card> communityCards;
         private Player dealer;
-        private int pot;
         private Player currentPlayer;
+        private int pot;
+        private int currentBet;
 
         public Table()
         {
@@ -30,52 +31,48 @@ namespace PokerAI
 
             deck = new Deck();
             communityCards = new List<Card>();
-            dealer = players[1];
-            pot = 0;
-
         }
 
-        public void play()
+        public void Play()
         {
             for (int i = 0; i < _roundCount; i++)
             {
+                prepareHand();
+                currentBet = 0;
+                doBets();
 
+                communityCards.Add(deck.DrawCard());
+                communityCards.Add(deck.DrawCard());
+                communityCards.Add(deck.DrawCard());
+                doBets();
+
+                communityCards.Add(deck.DrawCard());
+                currentBet = 0;
+                doBets();
+
+                communityCards.Add(deck.DrawCard());
+                currentBet = 0;
+                doBets();
+                
             }
         }
 
-        void DoPreFlopBets()
+        private void prepareHand()
         {
-
+            deck.Shuffle();
+            communityCards.Clear();
+            dealer = dealer == null ? players[1] : players[players.IndexOf(dealer)];
+            pot = 0;
         }
 
-        void DealFlop()
+        private void doBets()
         {
-
-        }
-
-        void DoFlopBets()
-        {
-
-        }
-        
-        void DealTurn()
-        {
-
-        }
-        
-        void DoTurnBets()
-        {
-
-        }
-        
-        void DealRiver()
-        {
-
-        }
-        
-        void DoRiverBets()
-        {
-
+            foreach (Player p1 in players)
+            {
+                
+                //currentBet = p1.DoTurn();
+                //foreach (Player p2 in players) p2.NewAction(p1.DoAction));
+            }
         }
 
     }
