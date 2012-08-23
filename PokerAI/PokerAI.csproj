@@ -40,7 +40,6 @@
     <Compile Include="..\..\..\..\Documents\GitHub\PokerAI\PokerAI\Main.cs" />
     <Compile Include="..\..\..\..\Documents\GitHub\PokerAI\PokerAI\AssemblyInfo.cs" />
     <Compile Include="Card.cs" />
-    <Compile Include="Class1.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Table.cs" />
   </ItemGroup>
