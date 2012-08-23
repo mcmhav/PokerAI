@@ -37,8 +37,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\mcmhav%40gmail.com\repos\PokerAI\PokerAI\Main.cs" />
-    <Compile Include="..\..\..\..\mcmhav%40gmail.com\repos\PokerAI\PokerAI\AssemblyInfo.cs" />
+    <Compile Include="..\..\..\..\Documents\GitHub\PokerAI\PokerAI\Main.cs" />
+    <Compile Include="..\..\..\..\Documents\GitHub\PokerAI\PokerAI\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
