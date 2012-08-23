@@ -1,8 +1,10 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="PokerAI/Main.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="PokerAI/Player.cs">
     <Files>
       <File FileName="PokerAI/Main.cs" Line="13" Column="1" />
+      <File FileName="PokerAI/AssemblyInfo.cs" Line="1" Column="1" />
+      <File FileName="PokerAI/Player.cs" Line="9" Column="6" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
