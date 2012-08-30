@@ -61,17 +61,43 @@ namespace PokerAI
         {
             deck.Shuffle();
             communityCards.Clear();
-            dealer = dealer == null ? players[1] : players[players.IndexOf(dealer)];
-            pot = 0;
+            if (dealer == null || dealer == players.Last()) dealer = players[1];
+            else dealer = players[players.IndexOf(dealer)+1];
         }
 
         private void doBets()
         {
+            Action currentAction;
+            Action previousAction;
+            string output;
             foreach (Player p1 in players)
             {
-                
-                //currentBet = p1.DoTurn();
-                //foreach (Player p2 in players) p2.NewAction(p1.DoAction));
+                currentAction = p1.DoTurn(currentBet);
+                pot += currentAction.callAmount + currentAction.betAmount;
+                output = "p"+players.IndexOf(p1)+" ";
+                switch (currentAction.type)
+	            {
+		            case ActionType.FOLD:
+                        output += "folded...";
+                        break;
+                    case ActionType.CHECK:
+                        output += "checked...";
+                        break;
+                    case ActionType.CALL:
+                        output += "called ("+ currentAction.callAmount+")...";
+                        break;
+                    case ActionType.BET:
+                        output += "called ("+ currentAction.callAmount+"), and placed a new bet ("+ currentAction.betAmount+")...";
+                        break;
+                    case ActionType.RAISE:
+                        output += "called ("+ currentAction.callAmount+"), and raised the bet with"+ currentAction.betAmount+"...";
+                        break;
+                    case ActionType.RERAISE:
+                        output += "called ("+ currentAction.callAmount+"), and reraised the bet with "+ currentAction.betAmount+"...";
+                        break;
+	            }
+                Console.WriteLine(output);
+                foreach (Player p2 in players) p2.ActionMade(p1.DoAction));
             }
         }
 

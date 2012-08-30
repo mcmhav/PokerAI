@@ -11,7 +11,7 @@ namespace PokerAI
         public Table Table;
         
         public bool Folded;
-        public bool checked
+        public bool checkeds
         public List<Card> Hand;
         public int CurrentBet;
         public int Stack;
@@ -35,6 +35,11 @@ namespace PokerAI
             }
 		}
 
+        public Move DoTurn()
+        {
+
+        }
+
         public int actionSelector()
         {
 
@@ -50,4 +55,20 @@ namespace PokerAI
 
         }
     }
+
+    class Action
+    {
+        public ActionType type;
+        public int callAmount;
+        public int betAmount;
+
+        public Action(ActionType type, int callAmount, int betAmount){
+            this.type = type;
+            this.callAmount = callAmount;
+            this.betAmount = betAmount;
+
+        }
+    }
+
+    enum ActionType {FOLD, CHECK, CALL, BET, RAISE, RERAISE}
 }
