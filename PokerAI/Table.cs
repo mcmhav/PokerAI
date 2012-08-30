@@ -37,21 +37,30 @@ namespace PokerAI
         {
             for (int i = 0; i < _roundCount; i++)
             {
+                Console.WriteLine("Preparing new round, and dealing pocket cards...");
                 prepareHand();
                 currentBet = 0;
+
+                Console.WriteLine("Starting preflop bets...");
                 doBets();
 
+                Console.WriteLine("Dealing flop...");
                 communityCards.Add(deck.DrawCard());
                 communityCards.Add(deck.DrawCard());
                 communityCards.Add(deck.DrawCard());
+                Console.WriteLine("Starting flop-betround...");
                 doBets();
 
+                Console.WriteLine("Dealing turn...");
                 communityCards.Add(deck.DrawCard());
                 currentBet = 0;
+                Console.WriteLine("Starting turn-betround");
                 doBets();
 
+                Console.WriteLine("Dealing river...");
                 communityCards.Add(deck.DrawCard());
                 currentBet = 0;
+                Console.WriteLine("Starting river-betround");
                 doBets();
                 
             }
@@ -63,6 +72,12 @@ namespace PokerAI
             communityCards.Clear();
             if (dealer == null || dealer == players.Last()) dealer = players[1];
             else dealer = players[players.IndexOf(dealer)+1];
+            foreach (Player p in players)
+            {
+                p.Hand.Clear();
+                p.Hand.Add(deck.DrawCard());
+                p.Hand.Add(deck.DrawCard());
+            }
         }
 
         private void doBets()
