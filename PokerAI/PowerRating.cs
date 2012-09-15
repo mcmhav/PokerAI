@@ -16,151 +16,271 @@ namespace PokerAI
 
         public PowerRating(List<Card> hand)
         {
+            hand = hand.OrderByDescending(c => c.Value).ToList();
+            if (flushORstraightFlush(hand)) return;
 
-            List<int> valueCount = new List<int>(13){0,0,0,0,0,0,0,0,0,0,0,0,0};
-            List<int> suitCount = new List<int>(4){0,0,0,0};
+            var ValueGroup = hand.GroupBy(c => c.Value).Select(g => new { value = g.Key, count = g.Count(), cards = g }).ToList();
+            var valueGroupByCount = ValueGroup.OrderByDescending(vc => vc.count).ToList();
+            int highestQuantity = valueGroupByCount.First().count;
+            int highestQuantityValue = valueGroupByCount.First().value;
 
-            foreach (Card c in hand)
+            if (highestQuantity == 4)
             {
-                suitCount[(int)c.Suit]++;
-                valueCount[Math.Abs(c.Value-12)]++;
+                #region 4 of a kind
+                first = 7;
+                second = highestQuantityValue;
+                third = ValueGroup[0].value == second ? ValueGroup[1].value : ValueGroup[0].value;
+                #endregion
             }
-            bool flush = suitCount.Max() >= 5;
-            int straightCount = 0;
-            int highest;
-            bool straight = false;
-            for (int i = 12; i >= 0; i--)
+            else
             {
-                if (valueCount[i] > 0)
+                if (highestQuantity == 3 && valueGroupByCount[1].count > 1)
                 {
-                    straightCount++;
-                    if (straightCount == 5)
-                    {
-                        straight = true;
-                        highest = i+4;
-                        break;
-                    }
+                    #region Full house
+                    first = 6;
+                    second = highestQuantityValue;
+                    third = valueGroupByCount[2].count > 1 ? Math.Max(valueGroupByCount[1].value, valueGroupByCount[2].value) : valueGroupByCount[1].value;
+                    #endregion
                 }
-                else straightCount = 0;
-            }
-            if (straightCount >= 4 && valueCount[12] > 0)
-            {
-                straight = true;
-                highest = 12;
-            }
-            
-            if (flush & straight)
-            {
-                // TODO Check for straight flush.
-                first = 8;
-                second = highest;
-                return;
-            }
-
-            int highestValueQuantity = valueCount.Max();
-            
-            switch (highestValueQuantity)
-            {
-                case 4:
-                    first = 7;
-                    second = Math.Abs(valueCount.IndexOf(4) - 12);
-                    third = Math.Abs(Math.Min(Math.Min(valueCount.IndexOf(3), valueCount.IndexOf(2)), valueCount.IndexOf(1)) - 12);
-                    break;
-                case 3:
-                    second = Math.Abs(valueCount.IndexOf(3) - 12);
-                    int Math.Abs(Math.Min(nextBest = valueCount.IndexOf(2);
-                    if (nextBest != -1)
+                else
+                {
+                    #region Check for straight
+                    int i = 0;
+                    while (i + 4 < ValueGroup.Count)
                     {
-                        first = 6;
-                        third = nextBest;
+                        if (ValueGroup[i].value == ValueGroup[i + 4].value + 4)
+                        {
+                            first = 4;
+                            second = ValueGroup[i].value;
+                            break;
+                        }
+                        i++;
+                    }
+                    #endregion
+
+                    if (highestQuantity == 3)
+                    {
+                        #region 3 of a kind
+                        first = 3;
+                        second = highestQuantityValue;
+
+                        if (ValueGroup[0].value == second)
+                            third = ValueGroup[1].value;
+                        else
+                            third = ValueGroup[0].value;
+
+                        if (ValueGroup[1].value == second || ValueGroup[1].value == third)
+                            fourth = ValueGroup[2].value;
+                        else
+                            fourth = ValueGroup[1].value;
+                        #endregion
+                    }
+                    else if (highestQuantity == 2)
+                    {
+                        if (valueGroupByCount[1].count > 1)
+                        {
+                            #region Two pairs
+
+                            first = 2;
+                            second = highestQuantityValue;
+
+                            if (valueGroupByCount[2].count > 1)
+                                third = Math.Max(valueGroupByCount[1].value, valueGroupByCount[2].value);
+                            else
+                                third = valueGroupByCount[1].value;
+
+                            fourth = ValueGroup.First(vc => vc.value != second && vc.value != third).value;
+
+                            #endregion
+                        }
+                        else
+                        {
+                            #region One Pair
+                            first = 1;
+                            second = highestQuantityValue;
+                            third = ValueGroup[1].value;
+                            fourth = ValueGroup[2].value;
+                            fift = ValueGroup[3].value;
+                            sixth = ValueGroup[4].value;
+                            #endregion
+                        }
                     }
                     else
                     {
-                        first = 3;
-                        for(int i = 12; i >= 0; i--)
-                        {
-                            if (valueCount[i] == 1)
-                            {
-                                if(second == -1) second = i;
-                                else third = i;
-                            }
-                        }
+                        #region Highcard
+                        first = 0;
+                        second = highestQuantityValue;
+                        third = ValueGroup[1].value;
+                        fourth = ValueGroup[2].value;
+                        fift = ValueGroup[3].value;
+                        sixth = ValueGroup[4].value;
+                        #endregion
                     }
-                    break;
-                case 2:
-                    first = 1;
-                    for(int i = 12; i >= 0; i--)
-                    {
-                        if(valueCount[i] == 2)
-                        {
-                            if(second == -1) second = i;
-                            else
-                            {
-                                first = 2;
-                                third = i;
-                            }
-                        }
-                        if(valueCount[i] == 1)
-                        {
-                            if(fourth == -1) fourth = i;
-                            else if(fift == -1) fift = i;
-                            else
-                            {
-                                third = fourth;
-                                fourth = fift;
-                                fift = i;
-                            }
-                        }
-                    }
-                    break;
-                case 1:
-                    bool straight = false;
-                    int straightCount = 0;
-                    for (int i = 12; i >= 0; i--)
-                    {
-                        if (valueCount[i] == 1)
-                        {
-                            straightCount++;
-                            if (straightCount == 5)
-                            {
-                                i = -1;
-                                straight = true;
-                            }
-
-                            if (second != -1) second = i;
-                            else if (third != -1) third = i;
-                            else if (fourth != -1) fourth = i;
-                            else if (fift != -1) fift = i;
-                            else sixth = i;
-                        }
-                        else straightCount = 0;
-                    }
-                    if (straight || (straightCount == 4 && valueCount[12] == 1))
-                    {
-                        second = first;
-                        third = fourth = fift = sixth = 0;
-                        first = flush ? 8 : 4;
-                    }
-                    else first = flush? 5 : 0;
-
-                    break;
+                }
             }
         }
 
-        public static int betterThan(PowerRating pr1, PowerRating powerRating2)
-        {
-            if (pr1.first != powerRating2.first) return pr1.first > powerRating2.first ? 1 : -1;
-            else if (pr1.second != powerRating2.second) return pr1.second > powerRating2.second ? 1 : -1;
-            else if (pr1.third != powerRating2.third) return pr1.third > powerRating2.third ? 1 : -1;
-            else if (pr1.fourth != powerRating2.fourth) return pr1.fourth > powerRating2.fourth ? 1 : -1;
-            else if (pr1.fift != powerRating2.fift) return pr1.fift > powerRating2.fift ? 1 : -1;
-            else if (pr1.sixth != powerRating2.sixth) return pr1.sixth > powerRating2.sixth ? 1 : -1;
-            else return 0;
+#region Unused code
+            //var ValueGroup = hand.GroupBy(c => c.Value).Select(g => new { value = g.Key, count = g.Count() }).OrderBy(vc => vc.count).ThenBy(vc => vc.value).ToList();
+            //switch (ValueGroup[0].count)
+            //{
+            //    case 4:
+            //        break;
+            //}
+            
+
+            //List<int> valueCount = new List<int>(13){0,0,0,0,0,0,0,0,0,0,0,0,0};
+            //List<int> suitCount = new List<int>(4){0,0,0,0};
+
+            //foreach (Card c in hand)
+            //{
+            //    suitCount[(int)c.Suit]++;
+            //    valueCount[c.Value]++;
+            //}
+            //bool flush = suitCount.Max() >= 5;
+            //int straightCount = 0;
+            //int highest = -1;
+            //bool straight = false;
+            //for (int i = 12; i >= 0; i--)
+            //{
+            //    if (valueCount[i] > 0)
+            //    {
+            //        straightCount++;
+            //        if (straightCount == 5)
+            //        {
+            //            straight = true;
+            //            highest = i+4;
+            //            break;
+            //        }
+            //    }
+            //    else straightCount = 0;
+            //}
+            //if (straightCount >= 4 && valueCount[12] > 0)
+            //{
+            //    straight = true;
+            //    highest = 12;
+            //}
+            
+            //if (flush & straight)
+            //{
+            //    List<Card> temp = hand.Where(c => ((int) c.Suit) == suitCount.IndexOf(suitCount.Max())).OrderByDescending(c => c.Value).ToList();
+            //    int i = 0;
+            //    while (i + 4 < temp.Count)
+            //    {
+            //        if (temp[i].Value == temp[i + 4].Value + 4)
+            //        {
+            //            first = 8;
+            //            second = temp[i].Value;
+            //            return;
+            //        }
+            //        i++;
+            //    }
+            //}
+
+            //int highestValueQuantity = ValueGroup.Max();
+
+            //switch (highestValueQuantity)
+            //{
+            //    case 4:
+            //        first = 7;
+            //        second = ValueGroup.IndexOf(4);
+            //        third = Math.Max(Math.Max(ValueGroup.IndexOf(3), ValueGroup.IndexOf(2)), ValueGroup.IndexOf(1));
+            //        break;
+            //    case 3:
+            //        first = 6;
+            //        second = ValueGroup.LastIndexOf(3);
+            //        third = Math.Max(ValueGroup.LastIndexOf(second - 1, 3), ValueGroup.LastIndexOf(2));
+            //        if (third == -1)
+            //        {
+            //            first = 3;
+            //            third = ValueGroup.LastIndexOf(1);
+            //            fourth = ValueGroup.FindLastIndex(third - 1, v => v == 1);
+            //        }
+            //        break;
+            //    case 2:
+            //        if (!straight && !flush)
+            //        {
+            //            second = ValueGroup.LastIndexOf(2);
+            //            third = ValueGroup.FindLastIndex(second - 1, v => v == 2);
+            //            if (third != -1)
+            //            {
+            //                first = 2;
+            //                fourth = ValueGroup.LastIndexOf(1);
+            //            }
+            //            else
+            //            {
+            //                first = 1;
+            //                third = ValueGroup.LastIndexOf(1);
+            //                fourth = ValueGroup.FindLastIndex(third - 1, v => v == 1);
+            //                fift = ValueGroup.FindLastIndex(fourth - 1, v => v == 1);
+            //            }
+            //        }
+            //        break;
+            //    case 1:
+            //        if (!straight && !flush)
+            //        {
+            //            first = 0;
+            //            second = ValueGroup.LastIndexOf(1);
+            //            third = ValueGroup.FindLastIndex(second - 1, v => v == 0);
+            //            fourth = ValueGroup.FindLastIndex(third - 1, v => v == 0);
+            //            fift = ValueGroup.FindLastIndex(fourth - 1, v => v == 0);
+            //            sixth = ValueGroup.FindLastIndex(fift - 1, v => v == 0);
+            //        }
+            //        break;
+            //}
+        //}
+
+        //private straight(var )
+        //{
+        //    while (i + 4 < ValueGroup.Count)
+        //        {
+        //            if (ValueGroup[i].value == ValueGroup[i + 4].value + 4)
+        //            {
+        //                first = 4;
+        //                second = ValueGroup[i].Value;
+        //                return;
+        //            }
+        //            i++;
+        //        }
+        //}
+#endregion
+
+        private bool flushORstraightFlush(List<Card> hand){
+            var flushCards = hand.GroupBy(c => c.Suit).FirstOrDefault(g => g.Count() >= 5).ToList();
+            bool flush = flushCards  != null;
+            if (flush)
+            {
+                int i = 0;
+                while (i + 4 < flushCards.Count)
+                {
+                    if (flushCards[i].Value == flushCards[i + 4].Value + 4)
+                    {
+                        first = 8;
+                        second = flushCards[i].Value;
+                        return true;
+                    }
+                    i++;
+                }
+                first = 5;
+                second = flushCards[0].Value;
+                third = flushCards[1].Value;
+                fourth = flushCards[2].Value;
+                fift = flushCards[3].Value;
+                sixth = flushCards[4].Value;
+                return true;
+            }
+            return false;
         }
 
-        public static int betterThan(List<Card> hand)
+        public static int betterThan(PowerRating pr1, PowerRating pr2)
         {
-
+            if (pr1.first != pr2.first) return pr1.first > pr2.first ? 1 : -1;
+            else if (pr1.second != pr2.second) return pr1.second > pr2.second ? 1 : -1;
+            else if (pr1.third != pr2.third) return pr1.third > pr2.third ? 1 : -1;
+            else if (pr1.fourth != pr2.fourth) return pr1.fourth > pr2.fourth ? 1 : -1;
+            else if (pr1.fift != pr2.fift) return pr1.fift > pr2.fift ? 1 : -1;
+            else if (pr1.sixth != pr2.sixth) return pr1.sixth > pr2.sixth ? 1 : -1;
+            else return 0;
         }
     }
 }
