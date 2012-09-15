@@ -7,15 +7,32 @@ namespace PokerAI
 {
     class PowerRating
     {
-        int first = -1;
-        int second = -1;
-        int third = -1;
-        int fourth = -1;
-        int fift = -1;
-        int sixth = -1;
+        public int first {get; private set;}
+        public int second {get; private set;}
+        public int third {get; private set;}
+        public int fourth {get; private set;}
+        public int fift {get; private set;}
+        public int sixth {get; private set;}
+
 
         public PowerRating(List<Card> hand)
         {
+            if (hand.Count == 2)
+            {
+                if(hand[0].Value == hand[1].Value)
+                {
+                    first = (hand[0].Value / 3) * 2;
+                }
+                else if (hand[0].Suit == hand[1].Suit)
+                {
+                    first = 6;
+                }
+                else
+                {
+                    first = (hand[0].Value / 2);
+                }
+                return;
+            }
             hand = hand.OrderByDescending(c => c.Value).ToList();
             if (flushORstraightFlush(hand)) return;
 
@@ -52,7 +69,7 @@ namespace PokerAI
                         {
                             first = 4;
                             second = ValueGroup[i].value;
-                            break;
+                            return;
                         }
                         i++;
                     }

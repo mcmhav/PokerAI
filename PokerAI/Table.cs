@@ -7,15 +7,13 @@ namespace PokerAI
 {
     class Table
     {
-        private readonly int _roundCount;
+        private readonly int _roundCount = 1000;
 
         private List<Player> players;
         private Deck deck;
         private List<Card> communityCards;
         private Player dealer;
-        private Player currentPlayer;
         private int pot;
-        private int currentBet;
 
         public Table()
         {
@@ -39,7 +37,6 @@ namespace PokerAI
             {
                 Console.WriteLine("Preparing new round, and dealing pocket cards...");
                 prepareHand();
-                currentBet = 0;
 
                 Console.WriteLine("Starting preflop bets...");
                 doBets();
@@ -53,13 +50,11 @@ namespace PokerAI
 
                 Console.WriteLine("Dealing turn...");
                 communityCards.Add(deck.DrawCard());
-                currentBet = 0;
                 Console.WriteLine("Starting turn-betround");
                 doBets();
 
                 Console.WriteLine("Dealing river...");
                 communityCards.Add(deck.DrawCard());
-                currentBet = 0;
                 Console.WriteLine("Starting river-betround");
                 doBets();
                 
@@ -82,39 +77,67 @@ namespace PokerAI
 
         private void doBets()
         {
+            int currentBet = 0;
             Action currentAction;
-            Action previousAction;
             string output;
-            foreach (Player p1 in players)
+
+            List<Player> canPlay = players;
+            int canPlayCount = canPlay.Count;
+            while (canPlayCount != 0)
             {
-                currentAction = p1.DoTurn(currentBet);
-                pot += currentAction.callAmount + currentAction.betAmount;
-                output = "p"+players.IndexOf(p1)+" ";
-                switch (currentAction.type)
-	            {
-		            case ActionType.FOLD:
-                        output += "folded...";
-                        break;
-                    case ActionType.CHECK:
-                        output += "checked...";
-                        break;
-                    case ActionType.CALL:
-                        output += "called ("+ currentAction.callAmount+")...";
-                        break;
-                    case ActionType.BET:
-                        output += "called ("+ currentAction.callAmount+"), and placed a new bet ("+ currentAction.betAmount+")...";
-                        break;
-                    case ActionType.RAISE:
-                        output += "called ("+ currentAction.callAmount+"), and raised the bet with"+ currentAction.betAmount+"...";
-                        break;
-                    case ActionType.RERAISE:
-                        output += "called ("+ currentAction.callAmount+"), and reraised the bet with "+ currentAction.betAmount+"...";
-                        break;
-	            }
-                Console.WriteLine(output);
-                foreach (Player p2 in players) p2.ActionMade(p1.DoAction));
+                foreach (Player p in canPlay)
+                {
+                    if (p.CanPlay())
+                    {
+                        currentAction = p.Action(currentBet);
+                        currentBet = currentAction.callAmount + currentAction.betAmount;
+                        pot += currentBet;
+
+                        #region Writing in console
+                        output = "p" + players.IndexOf(p) + " ";
+                        switch (currentAction.type)
+                        {
+                            case ActionType.FOLD:
+                                output += "folded...";
+                                break;
+                            case ActionType.CHECK:
+                                output += "checked...";
+                                break;
+                            case ActionType.CALL:
+                                output += "called (" + currentAction.callAmount + ")...";
+                                break;
+                            case ActionType.BET:
+                                output += "called (" + currentAction.callAmount + "), and placed a new bet (" + currentAction.betAmount + ")...";
+                                break;
+                            case ActionType.RAISE:
+                                output += "called (" + currentAction.callAmount + "), and raised the bet with" + currentAction.betAmount + "...";
+                                break;
+                            case ActionType.RERAISE:
+                                output += "called (" + currentAction.callAmount + "), and reraised the bet with " + currentAction.betAmount + "...";
+                                break;
+                        }
+                        Console.WriteLine(output);
+#endregion
+
+                        foreach (Player p2 in players) p2.ActionMade(currentAction, p);
+                    }
+                }
+
+                foreach (Player p in players)
+                {
+                    if (!p.CanPlay())
+                    {
+                        canPlay.Remove(p);
+                        canPlayCount--;
+                    } 
+                }
             }
         }
 
+
+        public List<Card> getCommunityCards()
+        {
+            return communityCards;
+        }
     }
 }
