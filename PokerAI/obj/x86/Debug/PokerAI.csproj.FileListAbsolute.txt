@@ -3,3 +3,4 @@ E:\Users\Julius\Documents\GitHub\PokerAI\PokerAI\bin\Debug\PokerAI.exe
 E:\Users\Julius\Documents\GitHub\PokerAI\PokerAI\bin\Debug\PokerAI.pdb
 E:\Users\Julius\Documents\GitHub\PokerAI\PokerAI\obj\x86\Debug\PokerAI.exe
 E:\Users\Julius\Documents\GitHub\PokerAI\PokerAI\obj\x86\Debug\PokerAI.pdb
+E:\Users\Julius\Documents\GitHub\PokerAI\PokerAI\bin\Debug\PokerAI.exe.config
