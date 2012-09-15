@@ -6,7 +6,8 @@ namespace PokerAI
 	{
 		public static void Main (string[] args)
 		{
-			Console.WriteLine ("Hello World!");
+            Table table = new Table();
+            table.Play();
 		}
 	}
 }
