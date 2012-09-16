@@ -8,13 +8,46 @@ namespace PokerAI
     class Player
     {
         private readonly int initMoney = 1000;
-        public Table Table;
-        
-        public bool Folded;
-        public bool Checked;
+        private Table Table;
+        private bool haveChecked;
+
+        private bool _folded;
+        public bool Folded { 
+            get { return _folded; }
+            private set { 
+                _folded = value;
+                CanPlay = !value && Stack != 0;
+            }
+        }
+
+        private int _stack;
+        public int Stack
+        {
+            get { return _stack; }
+            set
+            {
+                if (value >= 0) _stack = value;
+                else return;
+                CanPlay = !_folded && value != 0;
+            }
+        }
+
+        private int _myCurrentBet;
+        public int MyCurrentBet
+        {
+            get { return _myCurrentBet; }
+            private set
+            {
+                if(value - _myCurrentBet > 0) Stack -= value - _myCurrentBet;
+                _myCurrentBet = value;
+            }
+        }
+
+        public PowerRating PowerRating { get; private set; }
+
+        public int SidePot;
         public List<Card> Hand;
-        public int MyCurrentBet { get; private set; }
-        public int Stack;
+        public bool CanPlay { get; private set; }
 
         public Player(Table table)
         {
@@ -23,88 +56,79 @@ namespace PokerAI
             Hand = new List<Card>();
         }
 
-        public bool CanPlay()
+        public void PrepareHand()
         {
-            return Stack != 0 && !Folded && (!Checked);
+            _myCurrentBet = 0;
+            SidePot = -1;
         }
-
-		public int EvaluateHand(int round)
-		{
-			if(0 == round)
-            {
-                
-            }
-            return 0;
-		}
 
         public Action Action(int currentBet)
         {
-            
-            //Table.getCommunityCards();
+            Action action;
             List<Card> temp = new List<Card>();
             temp.AddRange(Hand);
             temp.AddRange(Table.getCommunityCards());
-            PowerRating pr = new PowerRating(temp);
-            //if(pr.first > 1) pr.first = 3;
-            
-            if(true) //currentBet > 0 for later
+            PowerRating = new PowerRating(temp);
+
+            if (currentBet != MyCurrentBet || !haveChecked)
             {
                 int callAmount = currentBet - MyCurrentBet;
-                if (currentBet > Stack)
+                if (callAmount > Stack)
                 {
-                    Action a = new Action(ActionType.ALLIN, Stack, 0);
-                    Stack = 0;
-                    return a;
+                    action = new Action(ActionType.ALLIN, Stack, 0);
+                    MyCurrentBet += Stack;
                 }
-                else if(pr.first == 8)
+                else if(PowerRating.first == 8)
                 {
-                    Action a = new Action(ActionType.ALLIN, callAmount, Stack-callAmount);
-                    Stack = 0;
-                    return a;
+                    action = new Action(ActionType.ALLIN, callAmount, Stack-callAmount);
+                    MyCurrentBet += Stack;
                 }
-                else if(pr.first > 2)
+                else if(PowerRating.first > 2)
                 {
-                    Action a = new Action(ActionType.BET, callAmount, pr.first*(Stack/100));
-                    Stack = pr.first*(Stack/100);
-                    return a;
+                    int bet = PowerRating.first*(initMoney/200);
+                    if (bet >= Stack)
+                    {
+                        action = new Action(ActionType.ALLIN, callAmount, Stack);
+                        MyCurrentBet += Stack;
+                    }
+                    else
+                    {
+                        action = new Action(ActionType.BET, callAmount, bet);
+                        MyCurrentBet += bet;
+                    }
                 }
                 else
                 {
+                    Folded = true;
                     return new Action(ActionType.FOLD, 0, 0);
                 }
             }
-            else if (currentBet == MyCurrentBet && Checked)
+            else
             {
-                //something
+                return null;
             }
+            return action;
         }
 
-        private bool canBet(int currentBet)
+        public int PutBlind(int blind)
         {
+            if (Stack > blind)
+            {
+                MyCurrentBet = blind;
+            }
+            else
+            {
+                MyCurrentBet = Stack;
+            }
 
-            return false;
+            Stack -= MyCurrentBet;
+            return MyCurrentBet;
         }
-
 
         public void ActionMade(Action action, Player player)
         {
 
         }
-
-        //public int ActionSelector()
-        //{
-
-        //}
-
-        //public int PlaceBet()
-        //{
-            
-        //}
-
-        //public int OpponentModeler()
-        //{
-
-        //}
     }
 
     class Action

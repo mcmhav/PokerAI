@@ -15,6 +15,7 @@ namespace PokerAI
             Console.WriteLine(
                 string.Format("Minutes :{0}\nSeconds :{1}\n Mili seconds :{2}",
                 watch.Elapsed.Minutes, watch.Elapsed.Seconds, watch.Elapsed.TotalMilliseconds));
+            int i = 0;
 		}
 	}
 }

@@ -56,7 +56,12 @@ namespace PokerAI
                     #region Full house
                     first = 6;
                     second = highestQuantityValue;
-                    third = valueGroupByCount[2].count > 1 ? Math.Max(valueGroupByCount[1].value, valueGroupByCount[2].value) : valueGroupByCount[1].value;
+                    
+                    if(valueGroupByCount.Count > 2 && valueGroupByCount[2].count > 1)
+                        third = Math.Max(valueGroupByCount[1].value, valueGroupByCount[2].value);
+                    else
+                        third = valueGroupByCount[1].value;
+
                     #endregion
                 }
                 else
@@ -118,7 +123,6 @@ namespace PokerAI
                             third = ValueGroup[1].value;
                             fourth = ValueGroup[2].value;
                             fift = ValueGroup[3].value;
-                            sixth = ValueGroup[4].value;
                             #endregion
                         }
                     }
@@ -263,10 +267,11 @@ namespace PokerAI
 #endregion
 
         private bool flushORstraightFlush(List<Card> hand){
-            var flushCards = hand.GroupBy(c => c.Suit).FirstOrDefault(g => g.Count() >= 5).ToList();
-            bool flush = flushCards  != null;
+            var flushGroup = hand.GroupBy(c => c.Suit).FirstOrDefault(g => g.Count() >= 5);
+            bool flush = flushGroup != null;
             if (flush)
             {
+                var flushCards = flushGroup.ToList();
                 int i = 0;
                 while (i + 4 < flushCards.Count)
                 {
@@ -289,14 +294,14 @@ namespace PokerAI
             return false;
         }
 
-        public static int betterThan(PowerRating pr1, PowerRating pr2)
+        public int betterThan(PowerRating other)
         {
-            if (pr1.first != pr2.first) return pr1.first > pr2.first ? 1 : -1;
-            else if (pr1.second != pr2.second) return pr1.second > pr2.second ? 1 : -1;
-            else if (pr1.third != pr2.third) return pr1.third > pr2.third ? 1 : -1;
-            else if (pr1.fourth != pr2.fourth) return pr1.fourth > pr2.fourth ? 1 : -1;
-            else if (pr1.fift != pr2.fift) return pr1.fift > pr2.fift ? 1 : -1;
-            else if (pr1.sixth != pr2.sixth) return pr1.sixth > pr2.sixth ? 1 : -1;
+            if (this.first != other.first) return this.first > other.first ? 1 : -1;
+            else if (this.second != other.second) return this.second > other.second ? 1 : -1;
+            else if (this.third != other.third) return this.third > other.third ? 1 : -1;
+            else if (this.fourth != other.fourth) return this.fourth > other.fourth ? 1 : -1;
+            else if (this.fift != other.fift) return this.fift > other.fift ? 1 : -1;
+            else if (this.sixth != other.sixth) return this.sixth > other.sixth ? 1 : -1;
             else return 0;
         }
     }
