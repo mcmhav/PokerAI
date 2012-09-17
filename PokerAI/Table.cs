@@ -7,13 +7,21 @@ namespace PokerAI
 {
     class Table
     {
-        private readonly int _roundCount = 10;
+        private readonly int _roundCount = 100;
 
         private List<Player> players;
         private Deck deck;
         private List<Card> communityCards;
-        private int pot;
-        //private Dictionary<Player, int> sidePots;
+        private int _pot;
+        private int pot
+        {
+            get { return _pot; }
+            set
+            {
+                if (value >= 0) _pot = value;
+                else return;
+            }
+        }
 
         private int blind;
         private int currentRoundNumber;
@@ -57,7 +65,7 @@ namespace PokerAI
                 if (winners.Count == 1)
                 {
                     endRound(winners.First());
-                    return;
+                    continue;
                 }
 
                 Console.WriteLine("Dealing flop...");
@@ -71,7 +79,7 @@ namespace PokerAI
                 if (winners.Count == 1)
                 {
                     endRound(winners.First());
-                    return;
+                    continue;
                 }
 
                 Console.WriteLine("Dealing turn...");
@@ -83,7 +91,7 @@ namespace PokerAI
                 if (winners.Count == 1)
                 {
                     endRound(winners.First());
-                    break;
+                    continue;
                 }
 
                 Console.WriteLine("Dealing river...");
@@ -95,7 +103,7 @@ namespace PokerAI
                 if (winners.Count == 1)
                 {
                     endRound(winners.First());
-                    return;
+                    continue;
                 }
                 else
                 {
@@ -155,23 +163,9 @@ namespace PokerAI
                 foreach (Player p in canPlay)
                 {
                     currentAction = p.Action(currentBet);
+                    if (currentAction == null) return;
                     currentBet += currentAction.betAmount;
                     pot += currentAction.callAmount + currentAction.betAmount;
-
-                    if (currentAction == null) return;
-                    else if (currentAction.type == ActionType.ALLIN)
-                        p.SidePot = pot;
-                    else if (currentAction.type == ActionType.FOLD && canPlayCount == 2)
-                        break;
-
-                    for(int i = 0; i < players.Count; i++)
-                    {
-                        if (players[i].SidePot != -1 && players[i] != p)
-                        {
-                            int differanse = players[i].MyCurrentBet - (p.MyCurrentBet - (currentAction.callAmount + currentAction.betAmount));
-                            if (differanse > 0) players[i].SidePot += differanse; 
-                        }
-                    }
 
                     #region Writing in console
                     output = p.name + " ";
@@ -200,7 +194,29 @@ namespace PokerAI
                             break;
                     }
                     Console.WriteLine(output);
-#endregion
+                    #endregion
+
+                    if (currentAction.type == ActionType.ALLIN)
+                    {
+                        p.SidePot = pot;
+                        if (currentBet > p.MyCurrentBet)
+                            foreach (Player p2 in players)
+                                if (p2.MyCurrentBet > p.MyCurrentBet)
+                                    p.SidePot -= p2.MyCurrentBet - p.MyCurrentBet;
+                    }
+                    else if (currentAction.type == ActionType.FOLD && canPlayCount == 2)
+                        break;
+
+                    for(int i = 0; i < players.Count; i++)
+                    {
+                        if (players[i].SidePot != -1 && players[i] != p)
+                        {
+                            int differanse = players[i].MyCurrentBet - (p.MyCurrentBet - (currentAction.callAmount + currentAction.betAmount));
+                            if (differanse > 0) players[i].SidePot += differanse; 
+                        }
+                    }
+
+                    
 
                     foreach (Player p2 in players) p2.ActionMade(currentAction, p);
                 }
@@ -243,6 +259,7 @@ namespace PokerAI
         private void endRound(Player winner)
         {
             winner.Stack += pot;
+            Console.WriteLine(winner.name + " won " + pot);
             Console.WriteLine("HAND " + currentRoundNumber + " OVER");
         }
 
@@ -254,15 +271,21 @@ namespace PokerAI
                 List<Player> orderedWinnerGroup = winnerGroup.OrderBy(wg => wg.MyCurrentBet).ToList();
                 foreach(Player winner in winnerGroup)
                 {
-                    if (winner.SidePot != -1) win = winner.SidePot / winnerGroup.Count;
-                    else win = pot / winnerGroup.Count;
+                    if (winner.SidePot != -1)
+                        win = winner.SidePot / winnerGroup.Count;
+                    else
+                        win = pot / winnerGroup.Count;
 
                     winner.Stack += win;
                     pot -= win;
-                    foreach (Player p in players) if (p.SidePot != -1) p.SidePot -= win;
+                    foreach (Player p in players)
+                        if (p.SidePot != -1) 
+                            p.SidePot = Math.Max(0, p.SidePot - win);
 
-                    if(win > 0) Console.WriteLine(winner.name + " won " + win);
-                    else Console.WriteLine(winner.name + " lost his " + winner.MyCurrentBet);
+                    if(win > 0) 
+                        Console.WriteLine(winner.name + " won " + win);
+                    else 
+                        Console.WriteLine(winner.name + " lost his " + winner.MyCurrentBet);
                 }
             }
 

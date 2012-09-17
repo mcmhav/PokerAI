@@ -9,7 +9,6 @@ namespace PokerAI
     {
         private readonly int initMoney = 1000;
         private Table Table;
-        private bool haveChecked;
 
         private bool _folded;
         public bool Folded { 
@@ -43,9 +42,20 @@ namespace PokerAI
             }
         }
 
+        private int _sidePot;
+        public int SidePot
+        {
+            get { return _sidePot; }
+            set
+            {
+                if (value >= -1) _sidePot = value;
+                else return;
+            }
+        }
+
         public PowerRating PowerRating { get; private set; }
 
-        public int SidePot;
+
         public List<Card> Hand;
         public bool CanPlay { get; private set; }
 
@@ -66,6 +76,8 @@ namespace PokerAI
             SidePot = -1;
             if (Stack == 0) Folded = true;
             else Folded = false;
+
+            Console.WriteLine(name + " has: " + Stack + " dollars");
         }
 
         public Action Action(int currentBet)
@@ -73,7 +85,7 @@ namespace PokerAI
             Action action;
             updatePowerRating();
 
-            if (currentBet != MyCurrentBet || !haveChecked)
+            if (currentBet != MyCurrentBet)
             {
                 int callAmount = currentBet - MyCurrentBet;
                 if (callAmount > Stack)
