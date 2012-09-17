@@ -49,26 +49,29 @@ namespace PokerAI
         public List<Card> Hand;
         public bool CanPlay { get; private set; }
 
-        public Player(Table table)
+        public string name;
+
+        public Player(Table table, string name)
         {
             Table = table;
             Stack = initMoney;
             Hand = new List<Card>();
+
+            this.name = name;
         }
 
         public void PrepareHand()
         {
             _myCurrentBet = 0;
             SidePot = -1;
+            if (Stack == 0) Folded = true;
+            else Folded = false;
         }
 
         public Action Action(int currentBet)
         {
             Action action;
-            List<Card> temp = new List<Card>();
-            temp.AddRange(Hand);
-            temp.AddRange(Table.getCommunityCards());
-            PowerRating = new PowerRating(temp);
+            updatePowerRating();
 
             if (currentBet != MyCurrentBet || !haveChecked)
             {
@@ -80,21 +83,21 @@ namespace PokerAI
                 }
                 else if(PowerRating.first == 8)
                 {
-                    action = new Action(ActionType.ALLIN, callAmount, Stack-callAmount);
+                    action = new Action(ActionType.ALLIN, callAmount, Stack - callAmount);
                     MyCurrentBet += Stack;
                 }
                 else if(PowerRating.first > 2)
                 {
                     int bet = PowerRating.first*(initMoney/200);
-                    if (bet >= Stack)
+                    if (callAmount + bet >= Stack)
                     {
-                        action = new Action(ActionType.ALLIN, callAmount, Stack);
+                        action = new Action(ActionType.ALLIN, callAmount, Stack - callAmount);
                         MyCurrentBet += Stack;
                     }
                     else
                     {
                         action = new Action(ActionType.BET, callAmount, bet);
-                        MyCurrentBet += bet;
+                        MyCurrentBet += callAmount + bet;
                     }
                 }
                 else
@@ -121,13 +124,21 @@ namespace PokerAI
                 MyCurrentBet = Stack;
             }
 
-            Stack -= MyCurrentBet;
+            //Stack -= MyCurrentBet;
             return MyCurrentBet;
         }
 
         public void ActionMade(Action action, Player player)
         {
 
+        }
+
+        public void updatePowerRating()
+        {
+            List<Card> temp = new List<Card>();
+            temp.AddRange(Hand);
+            temp.AddRange(Table.getCommunityCards());
+            PowerRating = new PowerRating(temp);
         }
     }
 
